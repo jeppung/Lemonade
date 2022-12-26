@@ -17,8 +17,10 @@ package com.example.lemonade
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
+import com.example.lemonade.R.*
 import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
@@ -53,7 +55,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(layout.activity_main)
 
         // === DO NOT ALTER THE CODE IN THE FOLLOWING IF STATEMENT ===
         if (savedInstanceState != null) {
@@ -63,14 +65,15 @@ class MainActivity : AppCompatActivity() {
         }
         // === END IF STATEMENT ===
 
-        lemonImage = findViewById(R.id.image_lemon_state)
+        lemonImage = findViewById(id.image_lemon_state)
         setViewElements()
         lemonImage!!.setOnClickListener {
             // TODO: call the method that handles the state when the image is clicked
+            clickLemonImage()
         }
         lemonImage!!.setOnLongClickListener {
             // TODO: replace 'false' with a call to the function that shows the squeeze count
-            false
+            showSnackbar()
         }
     }
 
@@ -111,13 +114,41 @@ class MainActivity : AppCompatActivity() {
 
         // TODO: lastly, before the function terminates we need to set the view elements so that the
         //  UI can reflect the correct state
+
+        when(lemonadeState){
+            SELECT -> {
+                lemonadeState = SQUEEZE
+                lemonSize = LemonTree().pick()
+                squeezeCount = 0
+                setViewElements()
+            }
+            SQUEEZE -> {
+                if(lemonSize!=0){
+                    squeezeCount++
+                    lemonSize--
+                }else{
+                    lemonadeState = DRINK
+                    setViewElements()
+                }
+            }
+            DRINK -> {
+                lemonadeState = RESTART
+                lemonSize = -1
+                setViewElements()
+            }
+            RESTART -> {
+                lemonadeState = SELECT
+                setViewElements()
+            }
+        }
     }
 
     /**
      * Set up the view elements according to the state.
      */
     private fun setViewElements() {
-        val textAction: TextView = findViewById(R.id.text_action)
+        val textAction: TextView = findViewById(id.text_action)
+        val imageAction: ImageView = findViewById(id.image_lemon_state)
         // TODO: set up a conditional that tracks the lemonadeState
 
         // TODO: for each state, the textAction TextView should be set to the corresponding string from
@@ -126,6 +157,25 @@ class MainActivity : AppCompatActivity() {
         // TODO: Additionally, for each state, the lemonImage should be set to the corresponding
         //  drawable from the drawable resources. The drawables have the same names as the strings
         //  but remember that they are drawables, not strings.
+
+        when(lemonadeState){
+            SELECT -> {
+                textAction.setText("Click to select a lemon!")
+                lemonImage!!.setImageResource(drawable.lemon_tree)
+            }
+            SQUEEZE -> {
+                textAction.setText("Click to juice the lemon!")
+                lemonImage!!.setImageResource(drawable.lemon_squeeze)
+            }
+            DRINK -> {
+                textAction.setText("Click to drink your lemonade!")
+                lemonImage!!.setImageResource(drawable.lemon_drink)
+            }
+            RESTART -> {
+                textAction.setText("Click to start again")
+                lemonImage!!.setImageResource(drawable.lemon_restart)
+            }
+        }
     }
 
     /**
@@ -137,9 +187,9 @@ class MainActivity : AppCompatActivity() {
         if (lemonadeState != SQUEEZE) {
             return false
         }
-        val squeezeText = getString(R.string.squeeze_count, squeezeCount)
+        val squeezeText = getString(string.squeeze_count, squeezeCount)
         Snackbar.make(
-            findViewById(R.id.constraint_Layout),
+            findViewById(id.constraint_Layout),
             squeezeText,
             Snackbar.LENGTH_SHORT
         ).show()
